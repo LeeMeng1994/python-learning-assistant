@@ -118,6 +118,10 @@ class PythonLearnApp(QMainWindow):
         self.quiz_btn.clicked.connect(self.show_quiz)
         btn_layout.addWidget(self.quiz_btn)
 
+        self.reset_btn = QPushButton('🔄 重置代码')
+        self.reset_btn.clicked.connect(self.reset_code)
+        btn_layout.addWidget(self.reset_btn)
+
         self.complete_btn = QPushButton('✅ 完成课程')
         self.complete_btn.clicked.connect(self.complete_course)
         btn_layout.addWidget(self.complete_btn)
@@ -168,6 +172,11 @@ class PythonLearnApp(QMainWindow):
             self.theory_text.setText(c['theory'])
             self.code_edit.setText(c['code'])
             self.output.clear()
+
+    def reset_code(self):
+        c = COURSES[self.current_course]
+        self.code_edit.setText(c['code'])
+        self.output.setText('🔄 代码已重置为默认代码')
 
     def run_code(self):
         code = self.code_edit.toPlainText()
@@ -229,6 +238,11 @@ class PythonLearnApp(QMainWindow):
         layout.addWidget(close_btn)
 
         dialog.exec()
+
+    def reset_code(self):
+        c = COURSES[self.current_course]
+        self.code_edit.setText(c['code'])
+        self.output.setText('代码已重置为默认示例')
 
     def complete_course(self):
         c = COURSES[self.current_course]
