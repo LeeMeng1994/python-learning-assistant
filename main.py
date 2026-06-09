@@ -66,6 +66,14 @@ COURSES = [
     {'title': '14. 字典进阶', 'theory': '字典遍历、嵌套、get方法安全取值。\n示例：for k, v in d.items(): print(k, v)', 'code': 'scores = {"小明": 85, "小红": 92, "小刚": 78}\nfor name, score in scores.items():\n    print(f"{name}: {score}分")\nprint(scores.get("小李", "未找到"))', 'task': '统计字符串中每个字符出现的次数', 'hint': '用字典，遍历字符串，d[char] = d.get(char, 0) + 1'},
     {'title': '15. JSON数据处理', 'theory': 'JSON是数据交换格式，json模块可读写。\n示例：json.dumps({"a":1}) → "{\\"a\\":1}"', 'code': 'import json\ndata = {"name": "小明", "age": 18, "hobbies": ["读书", "编程"]}\njson_str = json.dumps(data, ensure_ascii=False)\nprint(json_str)\nparsed = json.loads(json_str)\nprint(parsed["name"])', 'task': '将字典{"city": "北京", "temp": 25}转为JSON字符串', 'hint': 'json.dumps(dict, ensure_ascii=False)'},
     {'title': '16. 综合练习', 'theory': '综合运用所学知识完成一个小项目。\n本课任务：制作一个简单的学生成绩管理系统', 'code': '# 学生成绩管理系统\nstudents = []\n\ndef add_student(name, score):\n    students.append({"name": name, "score": score})\n\ndef show_all():\n    for s in students:\n        print(s["name"] + ": " + str(s["score"]) + "分")\n\nadd_student("小明", 85)\nadd_student("小红", 92)\nshow_all()', 'task': '扩展系统：添加删除学生、计算平均分功能', 'hint': 'sum(s["score"] for s in students) / len(students)'},
+    {'title': '17. 正则表达式', 'theory': '正则表达式用于匹配字符串模式。\n示例：re.findall(r"\\d+", "abc123") → ["123"]', 'code': 'import re\ntext = "我的电话是138-1234-5678，邮箱是test@example.com"\nphones = re.findall(r"\\d{3}-\\d{4}-\\d{4}", text)\nprint("电话号码:", phones)\nemails = re.findall(r"[\\w.]+@[\\w.]+\\.\\w+", text)\nprint("邮箱:", emails)', 'task': '从文本中提取所有数字', 'hint': 're.findall(r"\\d+", text)'},
+    {'title': '18. 装饰器', 'theory': '装饰器在不修改原函数的情况下增强功能。\n示例：@timer 计算函数执行时间', 'code': 'import time\n\ndef timer(func):\n    def wrapper(*args, **kwargs):\n        start = time.time()\n        result = func(*args, **kwargs)\n        print(f"执行时间: {time.time()-start:.4f}秒")\n        return result\n    return wrapper\n\n@timer\ndef slow_function():\n    time.sleep(1)\n    return "Done"\n\nprint(slow_function())', 'task': '写一个装饰器，记录函数被调用的次数', 'hint': '用闭包保存count变量'},
+    {'title': '19. 生成器', 'theory': '生成器用yield按需产生数据，节省内存。\n示例：def gen(): yield 1; yield 2', 'code': 'def fibonacci(n):\n    a, b = 0, 1\n    for _ in range(n):\n        yield a\n        a, b = b, a + b\n\nfor num in fibonacci(10):\n    print(num, end=" ")\nprint()\n\n# 生成器表达式\nsquares = (x**2 for x in range(10))\nprint(list(squares))', 'task': '写一个生成器，产生1-100的偶数', 'hint': 'if x % 2 == 0: yield x'},
+    {'title': '20. 文件读写进阶', 'theory': 'CSV格式、路径操作、上下文管理器进阶。\n示例：csv模块读写表格数据', 'code': 'import csv\nimport os\n\n# 写入CSV\ndata = [["姓名", "年龄"], ["小明", 18], ["小红", 20]]\nwith open("test.csv", "w", newline="", encoding="utf-8") as f:\n    writer = csv.writer(f)\n    writer.writerows(data)\n\n# 读取CSV\nwith open("test.csv", "r", encoding="utf-8") as f:\n    reader = csv.reader(f)\n    for row in reader:\n        print(row)\n\nprint(f"文件大小: {os.path.getsize(chr(39)+chr(116)+chr(101)+chr(115)+chr(116)+chr(46)+chr(99)+chr(115)+chr(118)+chr(39))} 字节")', 'task': '创建一个CSV文件存储3个学生的成绩', 'hint': 'csv.writer(f).writerow([...])'},
+    {'title': '21. 网络请求', 'theory': '用requests库发送HTTP请求，获取网络数据。\n示例：requests.get("https://api.github.com")', 'code': 'import urllib.request\nimport json\n\n# 使用标准库获取数据\nurl = "https://jsonplaceholder.typicode.com/posts/1"\ntry:\n    with urllib.request.urlopen(url) as response:\n        data = json.loads(response.read())\n        print(f"标题: {data[\'title\']}")\n        print(f"内容: {data[\'body\'][:50]}...")\nexcept Exception as e:\n    print(f"请求失败: {e}")', 'task': '请求一个API并打印返回的JSON数据', 'hint': 'urllib.request.urlopen(url)'},
+    {'title': '22. 多线程', 'theory': '多线程让程序同时执行多个任务。\n示例：threading.Thread(target=func)', 'code': 'import threading\nimport time\n\ndef worker(name, delay):\n    print(f"{name} 开始工作")\n    time.sleep(delay)\n    print(f"{name} 完成工作")\n\n# 创建两个线程\nt1 = threading.Thread(target=worker, args=("线程A", 2))\nt2 = threading.Thread(target=worker, args=("线程B", 1))\n\nt1.start()\nt2.start()\nt1.join()\nt2.join()\nprint("所有线程完成")', 'task': '创建3个线程，分别打印不同的数字', 'hint': 'for i in range(3): threading.Thread(target=print_num, args=(i,)).start()'},
+    {'title': '23. 数据库操作', 'theory': 'SQLite是轻量级数据库，无需服务器。\n示例：sqlite3.connect("test.db")', 'code': 'import sqlite3\n\n# 连接数据库（不存在则创建）\nconn = sqlite3.connect(":memory:")\ncursor = conn.cursor()\n\n# 创建表\ncursor.execute("""CREATE TABLE users (\n    id INTEGER PRIMARY KEY,\n    name TEXT,\n    age INTEGER\n)""")\n\n# 插入数据\ncursor.execute("INSERT INTO users (name, age) VALUES (?, ?)", ("小明", 18))\ncursor.execute("INSERT INTO users (name, age) VALUES (?, ?)", ("小红", 20))\nconn.commit()\n\n# 查询\ncursor.execute("SELECT * FROM users")\nfor row in cursor.fetchall():\n    print(row)\n\nconn.close()', 'task': '创建一个书籍表，包含书名和作者', 'hint': 'CREATE TABLE books (title TEXT, author TEXT)'},
+    {'title': '24. 综合项目', 'theory': '综合运用所学知识完成一个实用项目。\n本课任务：制作一个简单的天气查询工具', 'code': 'import urllib.request\nimport json\n\ndef get_weather(city):\n    # 模拟天气数据（实际应调用天气API）\n    weather_data = {\n        "北京": {"temp": 25, "weather": "晴"},\n        "上海": {"temp": 28, "weather": "多云"},\n        "广州": {"temp": 32, "weather": "雨"}\n    }\n    return weather_data.get(city, {"temp": "未知", "weather": "未知"})\n\ncity = "北京"\nresult = get_weather(city)\nprint(f"{city}的天气: {result[\'weather\']}, 温度: {result[\'temp\']}°C")\n\n# 扩展任务：尝试调用真实天气API\n# API示例: http://wttr.in/Beijing?format=%C+%t', 'task': '扩展工具：支持查询多个城市，格式化输出', 'hint': 'for city in ["北京", "上海"]: print(get_weather(city))'},
 ]
 
 class PythonLearnApp(QMainWindow):
@@ -158,7 +166,7 @@ class PythonLearnApp(QMainWindow):
         self.load_course(0)
 
     def total_achievements(self):
-        return 8
+        return 10
 
     def update_progress_bar(self):
         completed = sum(1 for c in COURSES if self.progress.get(c['title'], {}).get('completed'))
@@ -268,9 +276,87 @@ class PythonLearnApp(QMainWindow):
         if completed >= 12 and 'advanced' not in self.achievements:
             self.achievements.add('advanced')
             new_ach.append('🚀 进阶学习 - 完成12门课程')
-        if completed >= len(COURSES) and 'master' not in self.achievements:
+        if completed >= 16 and 'chapter2' not in self.achievements:
+            self.achievements.add('chapter2')
+            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 高级学习 - 完成20门课程')
+        if completed >= 16 and 'chapter2' not in self.achievements:
+            self.achievements.add('chapter2')
+            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 高级学习 - 完成20门课程')
+        if completed >= 16 and 'chapter2' not in self.achievements:
+            self.achievements.add('chapter2')
+            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 高级学习 - 完成20门课程')
+        if completed >= 16 and 'chapter2' not in self.achievements:
+            self.achievements.add('chapter2')
+            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 高级学习 - 完成20门课程')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 Python专家 - 完成20门课程')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 Python专家 - 完成20门课程')
+        if completed >= 16 and 'chapter2' not in self.achievements:
+            self.achievements.add('chapter2')
+            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 高级学习 - 完成20门课程')
+        if completed >= 16 and 'chapter2' not in self.achievements:
+            self.achievements.add('chapter2')
+            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 高级学习 - 完成20门课程')
+        if completed >= 16 and 'chapter2' not in self.achievements:
+            self.achievements.add('chapter2')
+            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 高级学习 - 完成20门课程')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 Python专家 - 完成20门课程')
+        if completed >= 16 and 'chapter2' not in self.achievements:
+            self.achievements.add('chapter2')
+            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 Python高手 - 完成20门课程')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 Python专家 - 完成20门课程')
+        if completed >= 16 and 'chapter2' not in self.achievements:
+            self.achievements.add('chapter2')
+            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 高级学习 - 完成20门课程')
+        if completed >= 16 and 'chapter2' not in self.achievements:
+            self.achievements.add('chapter2')
+            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 高级学习 - 完成20门课程')
+        if completed >= 16 and 'master' not in self.achievements:
             self.achievements.add('master')
             new_ach.append('🏆 Python大师 - 完成所有课程')
+        if completed >= 20 and 'expert' not in self.achievements:
+            self.achievements.add('expert')
+            new_ach.append('🎯 Python专家 - 完成20门课程')
+        if completed >= len(COURSES) and 'legend' not in self.achievements:
+            self.achievements.add('legend')
+            new_ach.append('👑 Python传奇 - 完成所有课程（24门）')
         if new_ach:
             self.save_progress()
             self.ach_label.setText(f'🏆 成就: {len(self.achievements)}/{self.total_achievements()}')
