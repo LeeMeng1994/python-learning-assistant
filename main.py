@@ -49,6 +49,34 @@ class PythonHighlighter(QSyntaxHighlighter):
             for m in re.finditer(p, text):
                 self.setFormat(m.start(), m.end()-m.start(), fmt)
 
+# 课程参考答案（独立存储，便于维护）
+COURSE_ANSWERS = {
+    '1. Hello World': 'print("你好，Python！")',
+    '2. 变量': 'age = 18\nprint(age)',
+    '3. if判断': 'x = 15\nif x > 10:\n    print("大于10")\nelse:\n    print("不大于10")',
+    '4. for循环': 'for i in range(1, 11):\n    print(i)',
+    '5. 列表': 'colors = ["红", "绿", "蓝"]\nprint(colors[1])',
+    '6. 字典': 'person = {"name": "小明", "age": 18}\nprint(person)',
+    '7. 函数': 'def add(a, b):\n    return a + b\nprint(add(3, 5))',
+    '8. 文件操作': 'with open("test.txt", "w") as f:\n    f.write("Python学习")\nwith open("test.txt", "r") as f:\n    print(f.read())',
+    '9. 异常处理': 'try:\n    num = int(input("输入数字: "))\nexcept ValueError:\n    print("请输入有效数字！")',
+    '10. 字符串操作': 's = "apple,banana,orange"\nprint(s.split(","))',
+    '11. 列表进阶': 'squares = [x**2 for x in range(1, 11)]\nprint(squares)',
+    '12. 模块与包': 'import random\nfor _ in range(10):\n    print(random.randint(1, 50))',
+    '13. 面向对象基础': 'class Student:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\ns = Student("小明", 18)\nprint(s.name, s.age)',
+    '14. 字典进阶': 's = "hello"\ncount = {}\nfor char in s:\n    count[char] = count.get(char, 0) + 1\nprint(count)',
+    '15. JSON数据处理': 'import json\ndata = {"city": "北京", "temp": 25}\nprint(json.dumps(data, ensure_ascii=False))',
+    '16. 综合练习': '# 扩展学生成绩管理系统\nstudents = []\n\ndef add_student(name, score):\n    students.append({"name": name, "score": score})\n\ndef avg_score():\n    return sum(s["score"] for s in students) / len(students)\n\nadd_student("小明", 85)\nadd_student("小红", 92)\nprint("平均分:", avg_score())',
+    '17. 正则表达式': 'import re\ntext = "abc123def456"\nprint(re.findall(r"\\d+", text))',
+    '18. 装饰器': 'def count_calls(func):\n    count = 0\n    def wrapper(*args, **kwargs):\n        nonlocal count\n        count += 1\n        print(f"调用次数: {count}")\n        return func(*args, **kwargs)\n    return wrapper\n\n@count_calls\ndef hello():\n    print("Hello")\n\nhello()\nhello()',
+    '19. 生成器': 'def even_numbers():\n    for x in range(1, 101):\n        if x % 2 == 0:\n            yield x\n\nprint(list(even_numbers()))',
+    '20. 文件读写进阶': 'import csv\nwith open("scores.csv", "w", newline="") as f:\n    writer = csv.writer(f)\n    writer.writerow(["姓名", "成绩"])\n    writer.writerow(["小明", 85])\n    writer.writerow(["小红", 92])\n    writer.writerow(["小刚", 78])',
+    '21. 网络请求': 'import urllib.request\nimport json\nurl = "https://jsonplaceholder.typicode.com/posts/1"\ntry:\n    with urllib.request.urlopen(url) as r:\n        data = json.loads(r.read())\n        print(data["title"])\nexcept Exception as e:\n    print(f"错误: {e}")',
+    '22. 多线程': 'import threading\n\ndef print_num(n):\n    print(f"数字: {n}")\n\nfor i in range(3):\n    t = threading.Thread(target=print_num, args=(i,))\n    t.start()',
+    '23. 数据库操作': 'import sqlite3\nconn = sqlite3.connect(":memory:")\ncursor = conn.cursor()\ncursor.execute("CREATE TABLE books (title TEXT, author TEXT)")\ncursor.execute("INSERT INTO books VALUES (?, ?)", ("Python入门", "张三"))\nconn.commit()\ncursor.execute("SELECT * FROM books")\nprint(cursor.fetchall())\nconn.close()',
+    '24. 综合项目': '# 天气查询工具扩展\ndef get_weather(city):\n    data = {\n        "北京": {"weather": "晴", "temp": 25},\n        "上海": {"weather": "多云", "temp": 28},\n        "广州": {"weather": "雨", "temp": 32}\n    }\n    return data.get(city, {"weather": "未知", "temp": "?"})\n\nfor city in ["北京", "上海", "广州"]:\n    w = get_weather(city)\n    print(f"{city}: {w[\'weather\']}, {w[\'temp\']}°C")',
+}
+
 COURSES = [
     {'title': '1. Hello World', 'theory': 'print()函数输出内容到屏幕。\n示例：print("Hello, World!")', 'code': 'print("Hello, World!")', 'task': '输出：你好，Python！', 'hint': '用print()包裹你的文字'},
     {'title': '2. 变量', 'theory': '变量是存储数据的容器。\n示例：name = "小明"\nage = 18', 'code': 'name = "小明"\nprint(name)', 'task': '创建一个变量存储你的年龄并打印', 'hint': 'age = 你的年龄'},
@@ -105,8 +133,10 @@ class PythonLearnApp(QMainWindow):
         self.current_course = 0
         self.progress = {}
         self.achievements = set()
+        self.dark_theme = True
         self.load_progress()
         self.init_ui()
+        self.apply_theme()
         self.check_achievements()
 
     def init_ui(self):
@@ -136,6 +166,16 @@ class PythonLearnApp(QMainWindow):
         # 成就
         self.ach_label = QLabel('🏆 成就: 0/' + str(self.total_achievements()))
         left.addWidget(self.ach_label)
+
+        # 主题切换按钮
+        self.theme_btn = QPushButton('🌙 夜间模式')
+        self.theme_btn.clicked.connect(self.toggle_theme)
+        left.addWidget(self.theme_btn)
+
+        # 学习统计按钮
+        self.stats_btn = QPushButton('📊 学习统计')
+        self.stats_btn.clicked.connect(self.show_stats)
+        left.addWidget(self.stats_btn)
 
         # 按钮
         btn_layout = QHBoxLayout()
@@ -188,6 +228,81 @@ class PythonLearnApp(QMainWindow):
 
     def total_achievements(self):
         return 10
+
+    def toggle_theme(self):
+        self.dark_theme = not self.dark_theme
+        self.apply_theme()
+        self.theme_btn.setText('🌙 夜间模式' if self.dark_theme else '☀ 日间模式')
+
+    def apply_theme(self):
+        if self.dark_theme:
+            # 深色主题
+            self.setStyleSheet('')
+            self.code_edit.setStyleSheet('background-color: #282a36; color: #f8f8f2;')
+            self.output.setStyleSheet('background-color: #1e1e1e; color: #4ec9b0;')
+            self.theory_text.setStyleSheet('')
+        else:
+            # 浅色主题
+            self.setStyleSheet('background-color: #f0f0f0; color: #333333;')
+            self.code_edit.setStyleSheet('background-color: #ffffff; color: #333333; border: 1px solid #cccccc;')
+            self.output.setStyleSheet('background-color: #f8f8f8; color: #333333; border: 1px solid #cccccc;')
+            self.theory_text.setStyleSheet('background-color: #ffffff; color: #333333;')
+
+    def show_stats(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle('📊 学习统计')
+        dialog.setMinimumSize(400, 350)
+        layout = QVBoxLayout(dialog)
+
+        # 计算统计数据
+        completed = sum(1 for c in COURSES if self.progress.get(c['title'], {}).get('completed'))
+        total_runs = self.progress.get('total_runs', 0)
+        total_courses = len(COURSES)
+        completion_rate = (completed / total_courses * 100) if total_courses > 0 else 0
+
+        # 学习时长估算（每门课约15分钟）
+        estimated_minutes = completed * 15
+        hours = estimated_minutes // 60
+        minutes = estimated_minutes % 60
+
+        # 最近学习日期
+        last_dates = [v.get('date', '') for v in self.progress.values() if isinstance(v, dict) and v.get('date')]
+        last_study = max(last_dates) if last_dates else '从未'
+
+        stats_text = f"""
+📈 学习概览
+━━━━━━━━━━━━━━━━━━━━━
+
+✅ 已完成课程: {completed} / {total_courses}
+📊 完成率: {completion_rate:.1f}%
+
+⚡ 代码运行次数: {total_runs}
+🏆 已获得成就: {len(self.achievements)} / {self.total_achievements()}
+
+⏱ 预计学习时长: {hours}小时{minutes}分钟
+
+📅 最近学习: {last_study[:10] if last_study != '从未' else last_study}
+
+━━━━━━━━━━━━━━━━━━━━━
+📋 章节进度
+
+📘 基础篇 (1-8课): {sum(1 for i in range(8) if self.progress.get(COURSES[i]['title'], {}).get('completed'))} / 8
+📗 进阶篇 (9-16课): {sum(1 for i in range(8, 16) if self.progress.get(COURSES[i]['title'], {}).get('completed'))} / 8
+📙 高级篇 (17-24课): {sum(1 for i in range(16, 24) if self.progress.get(COURSES[i]['title'], {}).get('completed'))} / 8
+
+━━━━━━━━━━━━━━━━━━━━━
+💡 提示: 坚持学习，解锁更多成就！
+        """
+
+        stats_label = QLabel(stats_text)
+        stats_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        layout.addWidget(stats_label)
+
+        close_btn = QPushButton('关闭')
+        close_btn.clicked.connect(dialog.accept)
+        layout.addWidget(close_btn)
+
+        dialog.exec()
 
     def update_progress_bar(self):
         completed = sum(1 for c in COURSES if self.progress.get(c['title'], {}).get('completed'))
@@ -262,6 +377,30 @@ class PythonLearnApp(QMainWindow):
         layout.addWidget(run_btn)
         layout.addWidget(output)
 
+        # 显示答案按钮
+        answer_btn = QPushButton('👁 查看正确答案')
+        answer_text = QTextEdit()
+        answer_text.setReadOnly(True)
+        answer_text.setStyleSheet('background-color: #2d2d2d; color: #ffd700;')
+        answer_text.setVisible(False)
+
+        def show_answer():
+            answer = COURSE_ANSWERS.get(c['title'], '# 参考答案\n# 请根据任务要求编写代码\n' + c['code'])
+            answer_text.setText(answer)
+            answer_text.setVisible(True)
+            answer_btn.setText('👁 隐藏正确答案')
+
+        def toggle_answer():
+            if answer_text.isVisible():
+                answer_text.setVisible(False)
+                answer_btn.setText('👁 查看正确答案')
+            else:
+                show_answer()
+
+        answer_btn.clicked.connect(toggle_answer)
+        layout.addWidget(answer_btn)
+        layout.addWidget(answer_text)
+
         close_btn = QPushButton('关闭')
         close_btn.clicked.connect(dialog.accept)
         layout.addWidget(close_btn)
@@ -283,101 +422,27 @@ class PythonLearnApp(QMainWindow):
         QMessageBox.information(self, '恭喜！', f'完成课程: {c["title"]}')
 
     def check_achievements(self):
+        """检查并解锁成就"""
         completed = sum(1 for c in COURSES if self.progress.get(c['title'], {}).get('completed'))
         new_ach = []
-        if completed >= 1 and 'first' not in self.achievements:
-            self.achievements.add('first')
-            new_ach.append('🎉 初次学习 - 完成第一门课程')
-        if completed >= 3 and 'starter' not in self.achievements:
-            self.achievements.add('starter')
-            new_ach.append('🌟 学习起步 - 完成3门课程')
-        if completed >= 8 and 'chapter1' not in self.achievements:
-            self.achievements.add('chapter1')
-            new_ach.append('📘 基础完成 - 完成第一章（1-8课）')
-        if completed >= 12 and 'advanced' not in self.achievements:
-            self.achievements.add('advanced')
-            new_ach.append('🚀 进阶学习 - 完成12门课程')
-        if completed >= 16 and 'chapter2' not in self.achievements:
-            self.achievements.add('chapter2')
-            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 高级学习 - 完成20门课程')
-        if completed >= 16 and 'chapter2' not in self.achievements:
-            self.achievements.add('chapter2')
-            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 高级学习 - 完成20门课程')
-        if completed >= 16 and 'chapter2' not in self.achievements:
-            self.achievements.add('chapter2')
-            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 高级学习 - 完成20门课程')
-        if completed >= 16 and 'chapter2' not in self.achievements:
-            self.achievements.add('chapter2')
-            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 高级学习 - 完成20门课程')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 Python专家 - 完成20门课程')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 Python专家 - 完成20门课程')
-        if completed >= 16 and 'chapter2' not in self.achievements:
-            self.achievements.add('chapter2')
-            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 高级学习 - 完成20门课程')
-        if completed >= 16 and 'chapter2' not in self.achievements:
-            self.achievements.add('chapter2')
-            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 高级学习 - 完成20门课程')
-        if completed >= 16 and 'chapter2' not in self.achievements:
-            self.achievements.add('chapter2')
-            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 高级学习 - 完成20门课程')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 Python专家 - 完成20门课程')
-        if completed >= 16 and 'chapter2' not in self.achievements:
-            self.achievements.add('chapter2')
-            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 Python高手 - 完成20门课程')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 Python专家 - 完成20门课程')
-        if completed >= 16 and 'chapter2' not in self.achievements:
-            self.achievements.add('chapter2')
-            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 高级学习 - 完成20门课程')
-        if completed >= 16 and 'chapter2' not in self.achievements:
-            self.achievements.add('chapter2')
-            new_ach.append('📗 进阶完成 - 完成第二章（9-16课）')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 高级学习 - 完成20门课程')
-        if completed >= 16 and 'master' not in self.achievements:
-            self.achievements.add('master')
-            new_ach.append('🏆 Python大师 - 完成所有课程')
-        if completed >= 20 and 'expert' not in self.achievements:
-            self.achievements.add('expert')
-            new_ach.append('🎯 Python专家 - 完成20门课程')
-        if completed >= len(COURSES) and 'legend' not in self.achievements:
-            self.achievements.add('legend')
-            new_ach.append('👑 Python传奇 - 完成所有课程（24门）')
+        
+        # 成就定义: (条件, 成就ID, 成就描述)
+        achievements_list = [
+            (1, 'first', '🎉 初次学习 - 完成第一门课程'),
+            (3, 'starter', '🌟 学习起步 - 完成3门课程'),
+            (8, 'chapter1', '📘 基础完成 - 完成第一章（1-8课）'),
+            (12, 'advanced', '🚀 进阶学习 - 完成12门课程'),
+            (16, 'chapter2', '📗 进阶完成 - 完成第二章（9-16课）'),
+            (20, 'expert', '🎯 Python专家 - 完成20门课程'),
+            (len(COURSES), 'master', '🏆 Python大师 - 完成所有课程'),
+            (len(COURSES), 'legend', '👑 Python传奇 - 完成所有课程（24门）'),
+        ]
+        
+        for threshold, ach_id, ach_desc in achievements_list:
+            if completed >= threshold and ach_id not in self.achievements:
+                self.achievements.add(ach_id)
+                new_ach.append(ach_desc)
+        
         if new_ach:
             self.save_progress()
             self.ach_label.setText(f'🏆 成就: {len(self.achievements)}/{self.total_achievements()}')
